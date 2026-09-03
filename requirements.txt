@@ -10,3 +10,5 @@ groq
 sqlalchemy
 openpyxl
 xlrd
+statsmodels
+scipy
