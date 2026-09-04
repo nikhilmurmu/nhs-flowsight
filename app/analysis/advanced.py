@@ -1,4 +1,4 @@
-﻿import pandas as pd
+import pandas as pd
 import numpy as np
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import adfuller, kpss
@@ -9,7 +9,7 @@ def decompose_series(df, value_col="ae_attendances", period=12):
     Returns a dict with each component as a pandas Series indexed by month.
     """
     series = df.set_index("month")[value_col].resample("MS").mean().interpolate()
-    decomposition = seasonal_decompose(series, model="additive", period=period, extrapolate_trend="freq")
+    decomposition = seasonal_decompose(series, model="additive", period=period, extrapolate_trend="period")
     return {
         "original": series,
         "trend": decomposition.trend,
