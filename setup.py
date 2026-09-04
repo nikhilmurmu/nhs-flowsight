@@ -3,5 +3,14 @@
 setup(
     name='nhs-flowsight',
     version='0.1.0',
-    packages=find_packages(),
+    packages=[
+        'app',
+        'app.analysis',
+        'app.forecast',
+        'app.ingestion',
+        'app.dashboard',
+        'app.api',
+        'app.reports',
+    ],
+    include_package_data=True,
 )
