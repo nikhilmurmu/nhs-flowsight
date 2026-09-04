@@ -1,8 +1,8 @@
 ﻿import sys
 from pathlib import Path
 
-# Add the `app` directory to sys.path so we can import analysis/forecast directly
-sys.path.insert(0, str(Path(__file__).parent / "app"))
+# Ensure the project root is on sys.path
+sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI, HTTPException, Header, Depends, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,9 +16,9 @@ import uuid
 from jose import jwt, JWTError
 from pydantic import BaseModel
 
-from analysis.eda import run_eda
-from forecast.sarima_model import run_sarima_forecast
-from forecast.monte_carlo import monte_carlo_ae
+from app.analysis.eda import run_eda
+from app.forecast.sarima_model import run_sarima_forecast
+from app.forecast.monte_carlo import monte_carlo_ae
 
 app = FastAPI(title="NHS FlowSight API")
 
@@ -89,7 +89,6 @@ def get_current_user(authorization: str = Header(None)) -> dict:
         raise HTTPException(status_code=401, detail="User not found")
     return dict(row)
 
-# Public endpoints
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -126,7 +125,6 @@ def get_monte_carlo():
         "upper_95": mc["upper_95"].to_dict()
     }
 
-# Auth endpoints
 @app.post("/signup")
 def signup(email: str = Form(...), password: str = Form(...)):
     conn = get_db()
