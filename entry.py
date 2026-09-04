@@ -94,6 +94,16 @@ def get_current_user(authorization: str = Header(None)) -> dict:
 def get_eda_cached():
     return run_eda()
 
+@app.get("/")
+def root():
+    return {
+        "service": "NHS FlowSight API",
+        "health": "/health",
+        "docs": "/docs",
+        "summary": "/api/summary",
+        "forecast": "/api/sarima-forecast"
+    }
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
