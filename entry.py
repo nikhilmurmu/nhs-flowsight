@@ -15,6 +15,7 @@ import uuid
 
 from jose import jwt, JWTError
 from pydantic import BaseModel
+from functools import lru_cache
 
 from app.analysis.eda import run_eda
 from app.forecast.sarima_model import run_sarima_forecast
@@ -93,19 +94,27 @@ def get_current_user(authorization: str = Header(None)) -> dict:
 def health():
     return {"status": "ok"}
 
+@lru_cache(maxsize=1)
+def get_eda_cached():
+    return run_eda()
+
 @app.get("/api/summary")
 def get_summary():
-    eda = run_eda()
-    if not eda or "summary" not in eda:
-        return {"error": "Data unavailable"}
-    return eda["summary"].to_dict()
+    try:
+        eda = get_eda_cached()
+        if not eda or "summary" not in eda:
+            return {"error": "Data unavailable"}
+        return eda["summary"].to_dict()
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get("/api/sarima-forecast")
 def get_sarima_forecast():
-    eda = run_eda()
-    if not eda or "data" not in eda:
-        return {"error": "Data unavailable"}
-    result = run_sarima_forecast(eda["data"])
+    try:
+        eda = get_eda_cached()
+        if not eda or "data" not in eda:
+            return {"error": "Data unavailable"}
+        result = run_sarima_forecast(eda["data"])
     return {
         "forecast": result["forecast_df"].to_dict(orient="records"),
         "metrics": result["metrics"],
@@ -115,10 +124,11 @@ def get_sarima_forecast():
 
 @app.get("/api/monte-carlo")
 def get_monte_carlo():
-    eda = run_eda()
-    if not eda or "data" not in eda:
-        return {"error": "Data unavailable"}
-    mc = monte_carlo_ae(eda["data"], n_simulations=500, periods=12)
+    try:
+        eda = get_eda_cached()
+        if not eda or "data" not in eda:
+            return {"error": "Data unavailable"}
+        mc = monte_carlo_ae(eda["data"], n_simulations=500, periods=12)
     return {
         "mean_path": mc["mean_path"].to_dict(),
         "lower_5": mc["lower_5"].to_dict(),
