@@ -1,8 +1,8 @@
 ﻿import sys
 from pathlib import Path
 
-# Add the app folder to Python's search path
-sys.path.insert(0, str(Path(__file__).parent / "app"))
+# Ensure the project root is on sys.path
+sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI, HTTPException, Header, Depends, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -90,13 +90,13 @@ def get_current_user(authorization: str = Header(None)) -> dict:
         raise HTTPException(status_code=401, detail="User not found")
     return dict(row)
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
 @lru_cache(maxsize=1)
 def get_eda_cached():
     return run_eda()
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 @app.get("/api/summary")
 def get_summary():
@@ -115,12 +115,14 @@ def get_sarima_forecast():
         if not eda or "data" not in eda:
             return {"error": "Data unavailable"}
         result = run_sarima_forecast(eda["data"])
-    return {
-        "forecast": result["forecast_df"].to_dict(orient="records"),
-        "metrics": result["metrics"],
-        "order": result["order"],
-        "seasonal_order": result["seasonal_order"]
-    }
+        return {
+            "forecast": result["forecast_df"].to_dict(orient="records"),
+            "metrics": result["metrics"],
+            "order": result["order"],
+            "seasonal_order": result["seasonal_order"]
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get("/api/monte-carlo")
 def get_monte_carlo():
@@ -129,11 +131,13 @@ def get_monte_carlo():
         if not eda or "data" not in eda:
             return {"error": "Data unavailable"}
         mc = monte_carlo_ae(eda["data"], n_simulations=500, periods=12)
-    return {
-        "mean_path": mc["mean_path"].to_dict(),
-        "lower_5": mc["lower_5"].to_dict(),
-        "upper_95": mc["upper_95"].to_dict()
-    }
+        return {
+            "mean_path": mc["mean_path"].to_dict(),
+            "lower_5": mc["lower_5"].to_dict(),
+            "upper_95": mc["upper_95"].to_dict()
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.post("/signup")
 def signup(email: str = Form(...), password: str = Form(...)):
