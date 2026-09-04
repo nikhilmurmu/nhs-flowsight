@@ -12,3 +12,5 @@ openpyxl
 xlrd
 statsmodels
 scipy
+pmdarima
+python-jose[cryptography]
