@@ -16,9 +16,9 @@ import uuid
 from jose import jwt, JWTError
 from pydantic import BaseModel
 
-from analysis.eda import run_eda
-from forecast.sarima_model import run_sarima_forecast
-from forecast.monte_carlo import monte_carlo_ae
+from app.analysis.eda import run_eda
+from app.forecast.sarima_model import run_sarima_forecast
+from app.forecast.monte_carlo import monte_carlo_ae
 
 app = FastAPI(title="NHS FlowSight API")
 
